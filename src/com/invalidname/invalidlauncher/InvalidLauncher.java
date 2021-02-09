@@ -3,6 +3,11 @@ package com.invalidname.invalidlauncher;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
+
 import org.joml.Vector2i;
 import org.liquidengine.legui.DefaultInitializer;
 import org.liquidengine.legui.animation.Animator;
@@ -14,17 +19,33 @@ import org.lwjgl.glfw.GLFWWindowCloseCallbackI;
 
 
 public class InvalidLauncher {
+	
 	public volatile static boolean isRunning;
 	private static Context context;
 	
+	private static File launcherLog = new File("./launcher.log");
+	private static PrintStream logPS;
+	
 	public static void main(String[] args) {
+		
+		try {
+			logPS = new PrintStream(launcherLog);
+			//System.setOut(logPS);
+			//System.setErr(logPS);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		Window window = new Window();
 		window.create();
 		
 		//Create LEGUI instance
 		DefaultInitializer initializer = new DefaultInitializer(window.getWindow(), window.getFrame());
 		
-		GLFWWindowCloseCallbackI glfwWindowCloseCallbackI = w -> isRunning = false;
+		GLFWWindowCloseCallbackI glfwWindowCloseCallbackI = w -> {
+			
+			isRunning = false;
+		};
 		
 		initializer.getCallbackKeeper().getChainWindowCloseCallback().add(glfwWindowCloseCallbackI);
 		
@@ -37,7 +58,6 @@ public class InvalidLauncher {
 		renderer.initialize();
 		
 		context = initializer.getContext();
-		
 		while(isRunning) {
 			context.updateGlfwWindow();
 			Vector2i windowSize = context.getFramebufferSize();

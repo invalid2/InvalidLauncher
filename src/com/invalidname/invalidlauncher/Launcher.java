@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -11,45 +12,58 @@ import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import javax.management.modelmbean.ModelMBeanInfoSupport;
+
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.google.common.io.Files;
+import com.invalidname.invalidlauncher.panels.BottomPanel;
+
+import javassist.bytecode.stackmap.TypeData.UninitThis;
 
 public class Launcher {
 	
 	//DZ Version Constants
-	public static final String VERSION_08 = "0.8";
-	public static final String VERSION_09 = "0.9";
-	public static final String VERSION_10 = "1.0";
-	public static final String VERSION_16 = "1.6";
-	public static final String VERSION_17b = "1.7b";
-	public static final String VERSION_17 = "1.7";
-	public static final String VERSION_18a = "1.8a";
-	public static final String VERSION_18b = "1.8b";
-	public static final String VERSION_18 = "1.8";
-	public static final String VERSION_19 = "1.9";
-	public static final String VERSION_193 = "1.9.3";
-	public static final String VERSION_21 = "2.1";
-	
+	public static final String RELEASES_DIR = "releases/";
 	public static final String DOMAIN_ADRESS = "http://invalidlauncher.invalid2.tk/";
 	
+	//Enviroment arguments constants
+	public static final String[] DZ_SP_ARGS = {"java","-jar", "GameRunner.jar", "singleplayer", "-singleplayer", "--singleplayer"};
+	public static final String[] DZ_CLIENT_ARGS = {"java","-jar", "GameRunner.jar", "client", "-client", "--client"};
+	public static final String[] DZ_SERVER_ARGS = {"java","-jar", "GameRunner.jar", "server", "-server", "--server"};
 	
 	/**
 	 * Launchs DangerZone, assumes everything required for launch has already been done
 	 * @param profile name of the profile selected for launch
 	 */
-	public static void Launch( String profile) {
-		ProcessBuilder ps = new ProcessBuilder(new String[] {"java","-jar", "GameRunner.jar", "singleplayer", "-singleplayer", "--singleplayer"});
-		File log = new File("./dzconsole.log");
+	public static void Launch( String profile, String[] args) {
+		
+		ProcessBuilder ps = new ProcessBuilder(args);
+		File log = new File("./launch.log");
 		ps.redirectOutput(log);
 		ps.redirectError(log);
-		ps.directory(new File(String.format("%s/%s", System.getProperty("user.dir"), profile)));
+		ps.directory(new File(String.format("%s/%s/%s", System.getProperty("user.dir"), RELEASES_DIR, profile)));
 		try {
 			ps.start();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		LauncherGui.setLaunching(false);
+		//Wait a bit so we dont launch the game twice
+		try {
+			Thread.sleep(200);
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		try {
+			LauncherGui.setLaunching(false);
+			
+			Thread.currentThread().join();
+			
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/**
@@ -61,10 +75,10 @@ public class Launcher {
 	public static void LaunchNoDownload(String version, String profileName) {
 		
 		//Get all the profiles
-		JSONObject profilesObject = LauncherGui.data.getJSONObject("profiles");
+		JSONObject profilesObject = LauncherGui.getJsonData().getJSONObject("profiles");
 		
 		//Create array from available profiles
-		String[] profiles = profilesObject.getNames(LauncherGui.data.getJSONObject("profiles"));
+		String[] profiles = profilesObject.getNames(LauncherGui.getJsonData().getJSONObject("profiles"));
 		
 		//Profile that we will be copying the content from
 		String selectedProfile = null;
@@ -78,12 +92,22 @@ public class Launcher {
 		
 		try {
 			//Copy necessary files if they already exist locally
-			Files.copy(new File("./"+selectedProfile+"/DangerZone_lib"), new File("./"+profileName+"/DangerZone_lib"));
-			Files.copy(new File("./"+selectedProfile+"/GameRunner_lib"), new File("./"+profileName+"/GameRunner_lib"));
-			Files.copy(new File("./"+selectedProfile+"/Launcher_lib"), new File("./"+profileName+"/Launcher_lib"));
-			Files.copy(new File("./"+selectedProfile+"/DangerZone.jar"), new File("./"+profileName+"/DangerZone.jar"));
-			Files.copy(new File("./Player.png"), new File("./"+profileName+"/Player.png"));
-			Files.copy(new File("./music"), new File("./"+selectedProfile+"/music"));
+			Files.copy(new File("./"+RELEASES_DIR+selectedProfile+"/DangerZone_lib"), new File("./"+RELEASES_DIR+profileName+"/DangerZone_lib"));
+			System.out.println(String.format("[LAUNCHER] Copied DangerZone_lib from %s to %s succesfully", selectedProfile, profileName));
+			
+			Files.copy(new File("./"+RELEASES_DIR+selectedProfile+"/GameRunner_lib"), new File("./"+RELEASES_DIR+profileName+"/GameRunner_lib"));
+			
+			
+			Files.copy(new File("./"+RELEASES_DIR+selectedProfile+"/Launcher_lib"), new File("./"+RELEASES_DIR+profileName+"/Launcher_lib"));
+			
+			
+			Files.copy(new File("./"+RELEASES_DIR+selectedProfile+"/DangerZone.jar"), new File("./"+RELEASES_DIR+profileName+"/DangerZone.jar"));
+			
+			
+			Files.copy(new File("./Player.png"), new File("./"+RELEASES_DIR+profileName+"/Player.png"));
+			
+			
+			Files.copy(new File("./music"), new File("./"+RELEASES_DIR+selectedProfile+"/music"));
 			
 			//Generate default properties file
 			Properties prop = new Properties();
@@ -98,14 +122,14 @@ public class Launcher {
 			prop.setProperty("SingleMaxG", "2");
 			prop.setProperty("ClientMaxG", "2");
 			prop.setProperty("FastLighting", "true");
-			prop.setProperty("Registered", LauncherGui.data.get("password") != null? "true" : "false");
+			prop.setProperty("Registered", LauncherGui.getJsonData().get("password") != null? "true" : "false");
 			prop.setProperty("ScreenWidth", "1920");
 			prop.setProperty("MaxGraphics", "true");
 			prop.setProperty("ServerAddress", "127.0.0.1");
 			prop.setProperty("NameServerAddress", "69.140.167.10");
 			prop.setProperty("MusicVolume", "3");
-			prop.setProperty("CryptedPassword", LauncherGui.data.get("password") != null? LauncherGui.data.getString("password") : null);
-			prop.setProperty("Playername", LauncherGui.data.getString("nickname"));
+			prop.setProperty("CryptedPassword", LauncherGui.getJsonData().get("password") != null? LauncherGui.getJsonData().getString("password") : null);
+			prop.setProperty("Playername", LauncherGui.getJsonData().getString("nickname"));
 			prop.setProperty("ScreenHeight", "1080");
 			prop.setProperty("MovePart", "true");
 			prop.setProperty("MouseSensitivity", "0");
@@ -123,9 +147,17 @@ public class Launcher {
 			prop.setProperty("ServerMaxG", "2");
 			prop.setProperty("PlayerDied", "false");
 			
-			prop.store(new FileOutputStream( new File("./"+selectedProfile+"/DangerZone.properties")), null);
+			prop.store(new FileOutputStream( new File("./"+RELEASES_DIR+selectedProfile+"/DangerZone.properties")), null);
 			
-			Launch(profileName);
+			if(BottomPanel.getLaunchType().isSelected(BottomPanel.getSinglePlayerButton()))
+				Launch(profileName, DZ_SP_ARGS);
+			
+			if(BottomPanel.getLaunchType().isSelected(BottomPanel.getClientButton()))
+				Launch(profileName, DZ_CLIENT_ARGS);
+			
+			if(BottomPanel.getLaunchType().isSelected(BottomPanel.getServerButton()))
+				Launch(profileName, DZ_SERVER_ARGS);
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -145,19 +177,24 @@ public class Launcher {
 			BufferedInputStream bIS = new BufferedInputStream( new URL(DOMAIN_ADRESS+version+".zip").openStream());
 			
 			//Create the directory the file will be put in
-			File dir = new File("./"+profileName);
+			File dir = new File("./"+RELEASES_DIR+profileName);
 			dir.mkdirs();
 			
-			FileOutputStream fOS = new FileOutputStream("./"+profileName+"/"+version+".zip");
+			FileOutputStream fOS = new FileOutputStream("./"+RELEASES_DIR+profileName+"/"+version+".zip");
 			HttpURLConnection httpConnection = (HttpURLConnection) new URL(DOMAIN_ADRESS+version+".zip").openConnection();
 			
 			//System.out.println(httpConnection.getContentLengthLong());
+			long contentSize = httpConnection.getContentLengthLong();
 			byte[] data = new byte[1024];
 			int dataLength;
 			
+			long taskPercent = 0L;
 			//Write the data to pc
 			while( (dataLength = bIS.read(data, 0, 1024)) != -1) {
 				fOS.write(data, 0, dataLength);
+				//System.out.println(taskPercent * 1.0 / contentSize);
+				System.out.println(String.format("[LAUNCHER] Downloading file %s.zip from remote: %d%%", version , taskPercent*100/contentSize));
+				taskPercent += dataLength;
 			}
 			
 			//Close the buffered input stream and the file output stream
@@ -165,13 +202,15 @@ public class Launcher {
 			fOS.close();
 			
 			//Now unzip it!
-			ZipInputStream zIS = new ZipInputStream( new FileInputStream( new File(String.format("./%s/%s.zip", profileName, version))));
+			ZipInputStream zIS = new ZipInputStream( new FileInputStream( new File(String.format("./%s%s/%s.zip", RELEASES_DIR, profileName, version))));
 			ZipEntry zE = zIS.getNextEntry();
-			File destination = new File(String.format("./%s", profileName));
+			File destination = new File(String.format("./%s%s", RELEASES_DIR, profileName));
 			data = new byte[1024];
 			while(zE != null) {
 				File current = new File(destination, zE.getName().substring(zE.getName().indexOf("/")));
-				System.out.println(zE.getName());
+				
+				System.out.println("[LAUNCHER] Extracting file: "+zE.getName());
+				
 				if(!current.getCanonicalPath().startsWith(destination.getCanonicalPath()+File.separator))
 					throw new IOException("ZipEntry outside of target directory:"+zE.getName());
 				
@@ -201,14 +240,28 @@ public class Launcher {
 			zIS.close();
 			
 			//Delete the zip
-			File zip = new File(String.format("./%s/%s.zip", profileName, version));
+			File zip = new File(String.format("./%s%s/%s.zip", RELEASES_DIR, profileName, version));
 			zip.delete();
 			
+			//Add version to list of locally available versions
+			JSONObject newJsonData = LauncherGui.getJsonData();
+			newJsonData.getJSONArray("versions").put(version);
+			FileWriter fW = new FileWriter(new File("./data.json"));
+			System.out.println("[LAUNCHER] Updated data.json with new version refs");
+			fW.write(newJsonData.toString());
+			fW.close();
 			//Now that the files are ready launch the game
-			Launch(profileName);
+			if(BottomPanel.getLaunchType().isSelected(BottomPanel.getSinglePlayerButton()))
+				Launch(profileName, DZ_SP_ARGS);
+			
+			if(BottomPanel.getLaunchType().isSelected(BottomPanel.getClientButton()))
+				Launch(profileName, DZ_CLIENT_ARGS);
+			
+			if(BottomPanel.getLaunchType().isSelected(BottomPanel.getServerButton()))
+				Launch(profileName, DZ_SERVER_ARGS);
 			
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			System.err.println("[LAUNCHER] Failed to download files");
 			e.printStackTrace();
 		}
 	}

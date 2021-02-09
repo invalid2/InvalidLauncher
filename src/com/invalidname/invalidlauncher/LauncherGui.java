@@ -3,6 +3,8 @@ package com.invalidname.invalidlauncher;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 
 import org.json.JSONObject;
@@ -33,8 +35,9 @@ public class LauncherGui extends Panel {
 	public static ProfilesTab profilesTab;
 	
 	public static boolean isLaunching = false;
-
-	public static JSONObject data = new JSONObject("{\r\n"
+	
+	public static JSONObject jsonData;
+	public static final JSONObject JSON_DEFAULT = new JSONObject("{\r\n"
 			+ "	\"nickname\":\"Player\",\r\n"
 			+ "	\"password\":\"\",\r\n"
 			+ "	\"remember\":false,\r\n"
@@ -44,18 +47,28 @@ public class LauncherGui extends Panel {
 			+ "	\"versions\":[],\r\n"
 			+ "	\"musicLocal\":false\r\n"
 			+ "}");
-	
+
 	public LauncherGui(int width, int height) {
 		this.setSize(width, height);
 		FileInputStream fIS;
+		FileWriter fW;
 		try {
 			fIS = new FileInputStream(new File("./data.json"));
+			
 			//System.out.println();
-			if(fIS != null) {
-				data = new JSONObject(new JSONTokener(fIS));
+			
+			jsonData = new JSONObject(new JSONTokener(fIS));
+		}  catch (IOException e) {
+			try {
+				jsonData = JSON_DEFAULT;
+				fW = new FileWriter(new File("./data.json"));
+				
+				fW.write(JSON_DEFAULT.toString());
+				fW.close();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -122,5 +135,17 @@ public class LauncherGui extends Panel {
 
 	public static void setLaunching(boolean isLaunching) {
 		LauncherGui.isLaunching = isLaunching;
+	}
+	
+	public static JSONObject getJsonData() {
+		return jsonData;
+	}
+
+	public static void setJsonData(JSONObject jsonData) {
+		LauncherGui.jsonData = jsonData;
+	}
+
+	public static JSONObject getJsonDefault() {
+		return JSON_DEFAULT;
 	}
 }

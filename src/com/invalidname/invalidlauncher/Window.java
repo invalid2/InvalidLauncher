@@ -59,7 +59,7 @@ public class Window {
 		// make window current on thread
 		glfwMakeContextCurrent(window);
 		GL.createCapabilities();
-		glfwSwapInterval(0);
+		glfwSwapInterval(3);
 		
 		// read monitors
 		PointerBuffer pointerBuffer = glfwGetMonitors();

@@ -1,0 +1,10 @@
+{
+	"nickname":"Player",
+	"password":"",
+	"remember":false,
+	"profiles":{
+		"latest":"2.1"
+	},
+	"versions":[],
+	"musicLocal":false
+}
