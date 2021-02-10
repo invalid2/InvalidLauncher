@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.text.BreakIterator;
 import java.util.Iterator;
 
+import org.joml.Vector2f;
 import org.json.JSONObject;
 import org.liquidengine.legui.component.Button;
 import org.liquidengine.legui.component.CheckBox;
@@ -22,13 +23,11 @@ import org.liquidengine.legui.component.event.checkbox.CheckBoxChangeValueEventL
 import org.liquidengine.legui.event.MouseClickEvent;
 import org.liquidengine.legui.listener.MouseClickEventListener;
 
+import com.invalidname.invalidlauncher.Constants;
 import com.invalidname.invalidlauncher.Launcher;
 import com.invalidname.invalidlauncher.LauncherGui;
 
 public class BottomPanel extends Panel {
-	
-	//Releases directory constant
-	public static final String RELEASES_DIR = "releases/";
 	
 	//Contents
 	Button settings, sendLogin, playButton;
@@ -55,34 +54,47 @@ public class BottomPanel extends Panel {
 		settings = new Button("S", height/4, height/4, height/2, height/2);
 		sendLogin = new Button("->", width-height*3/4-height/8, height/8, height*3/4, height*3/4);
 		sendLogin.getListenerMap().addListener(MouseClickEvent.class, (MouseClickEventListener) event -> {
-			
+			if(passwordInput.getTextState().getText().length() == 0) {
+				LauncherGui.getJsonData().put(Constants.JSON_KEY_NICKNAME, nicknameInput.getTextState().getText());
+			}
 		});
 		
-		nicknameInput = new TextInput("Player", width*5/6, height/8, width/10, height/5);
-		nicknameInput.getTextState().setText(LauncherGui.getJsonData().getString("nickname"));
+		nicknameInput = new TextInput(LauncherGui.getJsonData().getString(Constants.JSON_KEY_NICKNAME), width*5/6, height/8, width/10, height/5);
 		passwordInput = new PasswordInput("123", width*5/6, height/4+height/8, width/10, height/5);
-		if(LauncherGui.getJsonData().get("password") != null)
-			passwordInput.getTextState().setText(LauncherGui.getJsonData().getString("password"));
+		if(LauncherGui.getJsonData().get(Constants.JSON_KEY_PASSWORD) != null)
+			passwordInput.getTextState().setText(LauncherGui.getJsonData().getString(Constants.JSON_KEY_PASSWORD));
 		
 		nicknameLabel = new Label("Nickname:", width*5/6-nicknameInput.getSize().x()/2, height/9, width/10, height/4);
 		passwordLabel = new Label("Password:", width*5/6-nicknameInput.getSize().x()/2, height/4+height/9, width/10, height/4);
 		
-		userRemember = new CheckBox("Remember User", width*5/6-width/18, height-height/4, width, height);
+		userRemember = new CheckBox("Remember User", width*5/6-nicknameInput.getSize().x()/3, height*2/3, width/6, height/3);
+		userRemember.setChecked(LauncherGui.getJsonData().getBoolean(Constants.JSON_KEY_REMEMBER));
 		userRemember.addCheckBoxChangeValueListener((CheckBoxChangeValueEventListener) event -> {
-			LauncherGui.getJsonData().put("remember", event.getNewValue());
+			LauncherGui.getJsonData().put(Constants.JSON_KEY_REMEMBER, event.getNewValue());
 		});
 		
 		availableProfiles = new SelectBox<>(height/4+height/2+height/4, height/3, width/6, height/3);
-		//availableProfiles.setButtonWidth(width);
-		//availableProfiles.setVisibleCount(5);
+		availableProfiles.setButtonWidth(width);
 		
-		for(String name : LauncherGui.getJsonData().getNames(LauncherGui.getJsonData().getJSONObject("profiles"))) {
+		
+		for(String name : LauncherGui.getJsonData().getNames(LauncherGui.getJsonData().getJSONObject(Constants.JSON_KEY_PROFILES))) {
+			//System.out.println(name);
 			availableProfiles.addElement(name);
 		}
+		Layer selectBoxLayer = new Layer();
+		selectBoxLayer.setSize(width, height);
+		availableProfiles.add(selectBoxLayer);
+		
+		availableProfiles.setVisibleCount(5);
+		
 		availableProfiles.getExpandButton().setSize(height/3, height/3);
-		availableProfiles.getSelectionButton().setSize(width/6, height/3);
-		availableProfiles.setFocusable(false);
-		//availableProfiles.setElementHeight(height/3);
+		availableProfiles.getSelectionButton().setSize(width/7, height/3);
+		availableProfiles.getSelectionButton().setPosition(availableProfiles.getExpandButton().getSize().x(), 0);
+		availableProfiles.setFocusable(true);
+		System.out.println(availableProfiles.getElements());
+		availableProfiles.setElementHeight(height/3);
+		availableProfiles.getSelectionListPanel().setSize(width, height);
+		availableProfiles.setSelected("latest", true);
 		
 		launchType = new RadioButtonGroup();
 		
@@ -90,13 +102,13 @@ public class BottomPanel extends Panel {
 		clientButton = new RadioButton("Client", width/4, height*2/5, width/6, height/4);
 		serverButton = new RadioButton("Server", width/4, height*3/5, width/6, height/4);
 		
-		singlePlayerButton.setChecked(true);
-		clientButton.setChecked(false);
-		serverButton.setChecked(false);
-		
 		singlePlayerButton.setRadioButtonGroup(launchType);
 		clientButton.setRadioButtonGroup(launchType);
 		serverButton.setRadioButtonGroup(launchType);
+		
+		singlePlayerButton.setChecked(true);
+		clientButton.setChecked(false);
+		serverButton.setChecked(false);
 		
 		playButton = new Button("Play!", width/2-width/10, height/8, width/5, height*3/4);
 		playButton.getListenerMap().addListener(MouseClickEvent.class, (MouseClickEventListener) event -> {
@@ -112,7 +124,7 @@ public class BottomPanel extends Panel {
 				@Override
 				public void run() {
 					String profile = "";
-					Iterator<String> keys = LauncherGui.getJsonData().getJSONObject("profiles").keys();
+					Iterator<String> keys = LauncherGui.getJsonData().getJSONObject(Constants.JSON_KEY_PROFILES).keys();
 					
 					while(keys.hasNext()) {
 						if(keys.next().equals(availableProfiles.getSelection())) {
@@ -123,24 +135,24 @@ public class BottomPanel extends Panel {
 					
 					System.out.println(String.format("[LAUNCHER] Launching profile \"%s\"", profile));
 					
-					if( new File("./"+RELEASES_DIR+availableProfiles.getSelection().toString()).exists()) {
+					if( new File("./"+Constants.PROFILES_DIR+availableProfiles.getSelection().toString()).exists()) {
 						if(launchType.isSelected(singlePlayerButton))
-							Launcher.Launch(profile, Launcher.DZ_SP_ARGS);
+							Launcher.Launch(profile, Constants.DZ_SP_ARGS);
 						
 						if(launchType.isSelected(clientButton))
-							Launcher.Launch(profile, Launcher.DZ_CLIENT_ARGS);
+							Launcher.Launch(profile, Constants.DZ_CLIENT_ARGS);
 						
 						if(launchType.isSelected(serverButton))
-							Launcher.Launch(profile, Launcher.DZ_SERVER_ARGS);
+							Launcher.Launch(profile, Constants.DZ_SERVER_ARGS);
 					} else {
-						for(Object version : LauncherGui.getJsonData().getJSONArray("versions")) {
+						for(Object version : LauncherGui.getJsonData().getJSONArray(Constants.JSON_KEY_VERSIONS)) {
 							if(version.equals(profile)) {
 								Launcher.LaunchNoDownload(version.toString(), profile);
 								continue;
 							}
 						}
 						//System.out.println(profile);
-						Launcher.LaunchDownload( LauncherGui.getJsonData().getJSONObject("profiles").get(profile).toString(), profile);
+						Launcher.LaunchDownload( LauncherGui.getJsonData().getJSONObject(Constants.JSON_KEY_PROFILES).get(profile).toString(), profile);
 					}
 				}
 			}.start();

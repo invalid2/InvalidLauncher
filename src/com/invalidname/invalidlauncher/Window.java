@@ -4,6 +4,8 @@ import static org.liquidengine.legui.style.color.ColorUtil.fromInt;
 import static org.lwjgl.glfw.GLFW.*;
 
 import org.liquidengine.legui.component.Frame;
+import org.liquidengine.legui.event.WindowSizeEvent;
+import org.liquidengine.legui.listener.WindowSizeEventListener;
 import org.liquidengine.legui.style.color.ColorConstants;
 import org.liquidengine.legui.style.font.FontRegistry;
 import org.liquidengine.legui.theme.Themes;
@@ -105,6 +107,7 @@ public class Window {
 		
 		launcherGui = new LauncherGui(width, height);
 		launcherGui.setFocusable(false);
+		launcherGui.getListenerMap().addListener(WindowSizeEvent.class, (WindowSizeEventListener) event -> launcherGui.setSize(event.getWidth(), event.getHeight()));
 		frame.getContainer().add(launcherGui);
 		
 	}

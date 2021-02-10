@@ -6,9 +6,14 @@ import static org.lwjgl.opengl.GL11.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Iterator;
 
 import org.joml.Vector2i;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.liquidengine.legui.DefaultInitializer;
 import org.liquidengine.legui.animation.Animator;
 import org.liquidengine.legui.animation.AnimatorProvider;
@@ -19,14 +24,19 @@ import org.lwjgl.glfw.GLFWWindowCloseCallbackI;
 
 
 public class InvalidLauncher {
-	
+		
 	public volatile static boolean isRunning;
 	private static Context context;
 	
 	private static File launcherLog = new File("./launcher.log");
+	
+	//If you look a few lines further, you will see that it is indeed used
+	@SuppressWarnings("unused")
 	private static PrintStream logPS;
 	
 	public static void main(String[] args) {
+		System.setProperty("joml.nounsafe", Boolean.TRUE.toString());
+		System.setProperty("java.awt.headless", Boolean.FALSE.toString());
 		
 		try {
 			logPS = new PrintStream(launcherLog);
@@ -43,7 +53,32 @@ public class InvalidLauncher {
 		DefaultInitializer initializer = new DefaultInitializer(window.getWindow(), window.getFrame());
 		
 		GLFWWindowCloseCallbackI glfwWindowCloseCallbackI = w -> {
-			
+			JSONObject newData = new JSONObject();
+			Iterator<String> keys = LauncherGui.getJsonData().keys();
+			while(keys.hasNext()) {
+				String key = keys.next();
+				if(key.equals("password")) {
+					newData.put(key, LauncherGui.getJsonData().getBoolean("remember")? LauncherGui.getJsonData().get(key) : "");
+					continue;
+				}
+				
+				if(key.equals("nickname")) {
+					newData.put(key, LauncherGui.getJsonData().getBoolean("remember")? LauncherGui.getJsonData().get(key) : "Player");
+					continue;
+				}
+				
+				newData.put(key, LauncherGui.getJsonData().get(key));
+			}
+			System.out.println(newData.toString());
+			try {
+				FileWriter fW = new FileWriter("./data.json");
+				
+				fW.write(newData.toString(1));
+				fW.close();
+			} catch (JSONException | IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			isRunning = false;
 		};
 		
@@ -63,12 +98,12 @@ public class InvalidLauncher {
 			Vector2i windowSize = context.getFramebufferSize();
 			
 			glClearColor(1, 1, 1, 1);
-			// Set viewport size
+			// Sets the current viewport size
 			glViewport(0, 0, windowSize.x, windowSize.y);
-			// Clear screen
+			// Clears screen
 			glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 			
-			// render frame
+			// Renders the current frame
 			renderer.render(window.getFrame(), context);
 			
 			// poll events to callbacks

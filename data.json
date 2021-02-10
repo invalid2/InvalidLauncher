@@ -1,10 +1,22 @@
 {
-	"nickname":"Player",
-	"password":"",
-	"remember":false,
-	"profiles":{
-		"latest":"2.1"
-	},
-	"versions":[],
-	"musicLocal":false
+ "remember": false,
+ "password": "",
+ "musicLocal": false,
+ "versions": [],
+ "nickname": "Player",
+ "profiles": {
+  "1.8a": "1.8a",
+  "1.8b": "1.8b",
+  "1.0": "1.0",
+  "1.9.3": "1.9.3",
+  "1.6": "1.6",
+  "1.7": "1.7",
+  "0.8": "0.8",
+  "0.9": "0.9",
+  "1.9": "1.9",
+  "1.7b": "1.7b",
+  "latest": "2.1"
+ },
+ "registered": false,
+ "musicUse": false
 }

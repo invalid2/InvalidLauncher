@@ -10,8 +10,11 @@ import java.io.InputStream;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.liquidengine.legui.component.Button;
+import org.liquidengine.legui.component.Dialog;
+import org.liquidengine.legui.component.Label;
 import org.liquidengine.legui.component.Panel;
 import org.liquidengine.legui.component.SelectBox;
+import org.liquidengine.legui.component.event.selectbox.SelectBoxChangeSelectionEventListener;
 
 import com.invalidname.invalidlauncher.panels.BottomPanel;
 import com.invalidname.invalidlauncher.panels.TabPanel;
@@ -40,11 +43,23 @@ public class LauncherGui extends Panel {
 	public static final JSONObject JSON_DEFAULT = new JSONObject("{\r\n"
 			+ "	\"nickname\":\"Player\",\r\n"
 			+ "	\"password\":\"\",\r\n"
+			+ "	\"registered\":false,\r\n"
 			+ "	\"remember\":false,\r\n"
 			+ "	\"profiles\":{\r\n"
-			+ "		\"latest\":\"2.1\"\r\n"
+			+ "		\"latest\":\"2.1\",\r\n"
+			+ "		\"1.9.3\":\"1.9.3\",\r\n"
+			+ "		\"1.9\":\"1.9\",\r\n"
+			+ "		\"1.8b\":\"1.8b\",\r\n"
+			+ "		\"1.8a\":\"1.8a\",\r\n"
+			+ "		\"1.7\":\"1.7\",\r\n"
+			+ "		\"1.7b\":\"1.7b\",\r\n"
+			+ "		\"1.6\":\"1.6\",\r\n"
+			+ "		\"1.0\":\"1.0\",\r\n"
+			+ "		\"0.9\":\"0.9\",\r\n"
+			+ "		\"0.8\":\"0.8\"\r\n"
 			+ "	},\r\n"
 			+ "	\"versions\":[],\r\n"
+			+ "	\"musicUse\":false,\r\n"
 			+ "	\"musicLocal\":false\r\n"
 			+ "}");
 
@@ -95,16 +110,23 @@ public class LauncherGui extends Panel {
 		slectbx.addElement(new Long(2L));
 		slectbx.setVisibleCount(7);
 		slectbx.setElementHeight(20);
-		
+		slectbx.addSelectBoxChangeSelectionEventListener((SelectBoxChangeSelectionEventListener<Object>) event -> {
+            Dialog dialog = new Dialog("SelectBox clicked", 300, 100);
+            Label valueLabel = new Label("Value: " + event.getNewValue().toString(), 10, 10, 300, 20);
+            dialog.getContainer().add(valueLabel);
+            Label classLabel = new Label("Class: " + event.getNewValue().getClass().getName(), 10, 30, 300, 20);
+            dialog.getContainer().add(classLabel);
+            dialog.show(event.getFrame());
+        });
 		Button button = new Button("Test buttom blah bla", 0, 0, width, height);
 		
 		slectbx.getSelectionListPanel().setSize(width, height);
 		
 		//this.add(button);
-		//this.add(slectbx);
-		this.add(topPanel);
-		this.add(tabPanel);
-		this.add(bottomPanel);
+		this.add(slectbx);
+		//this.add(topPanel);
+		//this.add(tabPanel);
+		//this.add(bottomPanel);
 	}
 	
 	public static void setCurrentTab(Panel tab) {
