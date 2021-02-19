@@ -28,8 +28,10 @@ public class Launcher {
 	/**
 	 * Launchs DangerZone, assumes everything required for launch has already been done
 	 * @param profile name of the profile selected for launch
+	 * @param args Environment Arguments for the DangerZone
 	 */
 	public static void Launch( String profile, String[] args) {
+		System.out.println("[LAUNCHER] Launching...");
 		
 		ProcessBuilder ps = new ProcessBuilder(args);
 		File log = new File("./launch.log");
@@ -41,16 +43,15 @@ public class Launcher {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
 		//Wait a bit so we dont launch the game twice
 		try {
 			Thread.sleep(500);
 		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		try {
 			LauncherGui.setLaunching(false);
-			
 			Thread.currentThread().join();
 			
 		} catch (InterruptedException e) {
@@ -88,18 +89,19 @@ public class Launcher {
 			System.out.println(String.format("[LAUNCHER] Copied DangerZone_lib from %s to %s succesfully", selectedProfile, profileName));
 			
 			Files.copy(new File("./"+Constants.PROFILES_DIR+selectedProfile+"/GameRunner_lib"), new File("./"+Constants.PROFILES_DIR+profileName+"/GameRunner_lib"));
-			
+			System.out.println(String.format("[LAUNCHER] Copied GameRunner_lib from %s to %s succesfully", selectedProfile, profileName));
 			
 			Files.copy(new File("./"+Constants.PROFILES_DIR+selectedProfile+"/Launcher_lib"), new File("./"+Constants.PROFILES_DIR+profileName+"/Launcher_lib"));
-			
+			System.out.println(String.format("[LAUNCHER] Copied Launcher_lib from %s to %s succesfully", selectedProfile, profileName));
 			
 			Files.copy(new File("./"+Constants.PROFILES_DIR+selectedProfile+"/DangerZone.jar"), new File("./"+Constants.PROFILES_DIR+profileName+"/DangerZone.jar"));
-			
+			System.out.println(String.format("[LAUNCHER] Copied DangerZone.jar from %s to %s succesfully", selectedProfile, profileName));
 			
 			Files.copy(new File("./Player.png"), new File("./"+Constants.PROFILES_DIR+profileName+"/Player.png"));
-			
+			System.out.println(String.format("[LAUNCHER] Copied player skin to %s succesfully", profileName));
 			
 			Files.copy(new File("./music"), new File("./"+Constants.PROFILES_DIR+selectedProfile+"/music"));
+			System.out.println(String.format("[LAUNCHER] Copied music folder to %s succesfully", profileName));
 			
 			//Generate default properties file
 			Properties prop = new Properties();
@@ -140,6 +142,7 @@ public class Launcher {
 			prop.setProperty("PlayerDied", "false");
 			
 			prop.store(new FileOutputStream( new File("./"+Constants.PROFILES_DIR+selectedProfile+"/DangerZone.properties")), null);
+			System.out.println("[LAUNCHER] Generated DangerZone.properties succesfully");
 			
 			if(BottomPanel.getLaunchType().isSelected(BottomPanel.getSinglePlayerButton()))
 				Launch(profileName, Constants.DZ_SP_ARGS);

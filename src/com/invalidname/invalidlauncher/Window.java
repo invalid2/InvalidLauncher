@@ -2,12 +2,14 @@ package com.invalidname.invalidlauncher;
 
 import static org.liquidengine.legui.style.color.ColorUtil.fromInt;
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.system.MemoryUtil.NULL;
 
 import org.liquidengine.legui.component.Frame;
 import org.liquidengine.legui.event.WindowSizeEvent;
 import org.liquidengine.legui.listener.WindowSizeEventListener;
 import org.liquidengine.legui.style.color.ColorConstants;
 import org.liquidengine.legui.style.font.FontRegistry;
+import org.liquidengine.legui.system.layout.LayoutManager;
 import org.liquidengine.legui.theme.Themes;
 import org.liquidengine.legui.theme.colored.FlatColoredTheme;
 import org.lwjgl.PointerBuffer;
@@ -18,8 +20,8 @@ import org.lwjgl.opengl.GL;
 public class Window {
 	private int width, height;
 	private String title = "Invalid Launcher: A DangerZone Launcher";
-	private long window;
-	private Frame frame;
+	private static long window;
+	private static Frame frame;
 	private static long[] monitors = null;
 	private LauncherGui launcherGui;
 
@@ -50,10 +52,10 @@ public class Window {
 			height = videoMode.height() * 3/5;
 		}
 		
-		glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
-		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-		glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
-		window = glfwCreateWindow(width, height, title, 0, 0);
+		//glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
+		//glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+		//glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
+		window = glfwCreateWindow(width, height, title, NULL, NULL);
 		
 		glfwSetWindowPos(window, (videoMode.width() - width) / 2, (videoMode.height() - height) / 2);
 		glfwShowWindow(window);
@@ -61,7 +63,7 @@ public class Window {
 		// make window current on thread
 		glfwMakeContextCurrent(window);
 		GL.createCapabilities();
-		glfwSwapInterval(3);
+		glfwSwapInterval(2);
 		
 		// read monitors
 		PointerBuffer pointerBuffer = glfwGetMonitors();
@@ -87,8 +89,6 @@ public class Window {
 		
 		frame = new Frame(width, height);
 		createGUI(frame, width, height);
-		
-		
 	} 
 	
 	public Frame getFrame() {
@@ -117,6 +117,7 @@ public class Window {
 	}
 	
 	public void update() {
+		LayoutManager.getInstance().layout(frame);
 		GLFW.glfwPollEvents();
 	}
 	

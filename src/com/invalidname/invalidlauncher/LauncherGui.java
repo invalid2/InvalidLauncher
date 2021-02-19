@@ -99,34 +99,13 @@ public class LauncherGui extends Panel {
 		launcherNewsTab = new LauncherNewsTab(0, 0, width, height*4/5);
 		consoleTab = new ConsoleTab(0, 0, width, height*4/5);
 		profilesTab = new ProfilesTab(0, 0, width, height*4/5);
+		
 		//DefaultTab
 		tabPanel.setCurrentTab(dzNewsTab);
 		
-		SelectBox<Object> slectbx = new SelectBox<>(20, 260, 100, 20);
-		slectbx.addElement(0.25f);
-		slectbx.addElement(0.5d);
-		slectbx.addElement(1);
-		slectbx.addElement("MyText");
-		slectbx.addElement(new Long(2L));
-		slectbx.setVisibleCount(7);
-		slectbx.setElementHeight(20);
-		slectbx.addSelectBoxChangeSelectionEventListener((SelectBoxChangeSelectionEventListener<Object>) event -> {
-            Dialog dialog = new Dialog("SelectBox clicked", 300, 100);
-            Label valueLabel = new Label("Value: " + event.getNewValue().toString(), 10, 10, 300, 20);
-            dialog.getContainer().add(valueLabel);
-            Label classLabel = new Label("Class: " + event.getNewValue().getClass().getName(), 10, 30, 300, 20);
-            dialog.getContainer().add(classLabel);
-            dialog.show(event.getFrame());
-        });
-		Button button = new Button("Test buttom blah bla", 0, 0, width, height);
-		
-		slectbx.getSelectionListPanel().setSize(width, height);
-		
-		//this.add(button);
-		this.add(slectbx);
-		//this.add(topPanel);
-		//this.add(tabPanel);
-		//this.add(bottomPanel);
+		this.add(topPanel);
+		this.add(tabPanel);
+		this.add(bottomPanel);
 	}
 	
 	public static void setCurrentTab(Panel tab) {

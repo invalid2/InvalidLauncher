@@ -30,6 +30,8 @@ public class InvalidLauncher {
 	
 	private static File launcherLog = new File("./launcher.log");
 	
+	private static Window window;
+
 	//If you look a few lines further, you will see that it is indeed used
 	@SuppressWarnings("unused")
 	private static PrintStream logPS;
@@ -40,13 +42,13 @@ public class InvalidLauncher {
 		
 		try {
 			logPS = new PrintStream(launcherLog);
-			//System.setOut(logPS);
-			//System.setErr(logPS);
+			System.setOut(logPS);
+			System.setErr(logPS);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		Window window = new Window();
+		window = new Window();
 		window.create();
 		
 		//Create LEGUI instance
@@ -93,6 +95,7 @@ public class InvalidLauncher {
 		renderer.initialize();
 		
 		context = initializer.getContext();
+		//context.setDebugEnabled(true);
 		while(isRunning) {
 			context.updateGlfwWindow();
 			Vector2i windowSize = context.getFramebufferSize();
@@ -107,8 +110,10 @@ public class InvalidLauncher {
 			renderer.render(window.getFrame(), context);
 			
 			// poll events to callbacks
-			glfwPollEvents();
-			glfwSwapBuffers(window.getWindow());
+			window.update();
+			window.swapBuffers();
+			//glfwPollEvents();
+			//glfwSwapBuffers(window.getWindow());
 			
 			animator.runAnimations();
 			
@@ -125,5 +130,9 @@ public class InvalidLauncher {
 		
 		glfwDestroyWindow(window.getWindow());
 		glfwTerminate();
+	}
+	
+	public static Window getWindow() {
+		return window;
 	}
 }

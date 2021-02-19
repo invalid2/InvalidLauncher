@@ -1,5 +1,7 @@
 package com.invalidname.invalidlauncher.panels;
 
+import static org.liquidengine.legui.event.MouseClickEvent.MouseClickAction.CLICK;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,6 +28,7 @@ import org.liquidengine.legui.listener.MouseClickEventListener;
 import com.invalidname.invalidlauncher.Constants;
 import com.invalidname.invalidlauncher.Launcher;
 import com.invalidname.invalidlauncher.LauncherGui;
+import com.invalidname.invalidlauncher.LoginHandler;
 
 public class BottomPanel extends Panel {
 	
@@ -54,9 +57,12 @@ public class BottomPanel extends Panel {
 		settings = new Button("S", height/4, height/4, height/2, height/2);
 		sendLogin = new Button("->", width-height*3/4-height/8, height/8, height*3/4, height*3/4);
 		sendLogin.getListenerMap().addListener(MouseClickEvent.class, (MouseClickEventListener) event -> {
-			if(passwordInput.getTextState().getText().length() == 0) {
-				LauncherGui.getJsonData().put(Constants.JSON_KEY_NICKNAME, nicknameInput.getTextState().getText());
-			}
+			if (event.getAction() == CLICK)
+				if(passwordInput.getTextState().getText().length() == 0) {
+					LauncherGui.getJsonData().put(Constants.JSON_KEY_NICKNAME, nicknameInput.getTextState().getText());
+				} else {
+					LoginHandler.sendLogin(nicknameInput.getTextState().getText(), passwordInput.getTextState().getText());
+				}
 		});
 		
 		nicknameInput = new TextInput(LauncherGui.getJsonData().getString(Constants.JSON_KEY_NICKNAME), width*5/6, height/8, width/10, height/5);
@@ -75,25 +81,13 @@ public class BottomPanel extends Panel {
 		
 		availableProfiles = new SelectBox<>(height/4+height/2+height/4, height/3, width/6, height/3);
 		availableProfiles.setButtonWidth(width);
-		
+		availableProfiles.setVisibleCount(5);
+		availableProfiles.setFocusable(false);
+		availableProfiles.setElementHeight(height/3);
 		
 		for(String name : LauncherGui.getJsonData().getNames(LauncherGui.getJsonData().getJSONObject(Constants.JSON_KEY_PROFILES))) {
-			//System.out.println(name);
 			availableProfiles.addElement(name);
 		}
-		Layer selectBoxLayer = new Layer();
-		selectBoxLayer.setSize(width, height);
-		availableProfiles.add(selectBoxLayer);
-		
-		availableProfiles.setVisibleCount(5);
-		
-		availableProfiles.getExpandButton().setSize(height/3, height/3);
-		availableProfiles.getSelectionButton().setSize(width/7, height/3);
-		availableProfiles.getSelectionButton().setPosition(availableProfiles.getExpandButton().getSize().x(), 0);
-		availableProfiles.setFocusable(true);
-		System.out.println(availableProfiles.getElements());
-		availableProfiles.setElementHeight(height/3);
-		availableProfiles.getSelectionListPanel().setSize(width, height);
 		availableProfiles.setSelected("latest", true);
 		
 		launchType = new RadioButtonGroup();
@@ -117,7 +111,7 @@ public class BottomPanel extends Panel {
 			if(LauncherGui.isLaunching)
 				return;
 			
-			LauncherGui.isLaunching = true;
+			LauncherGui.setLaunching(true);
 			
 			new Thread() {
 				
@@ -135,7 +129,7 @@ public class BottomPanel extends Panel {
 					
 					System.out.println(String.format("[LAUNCHER] Launching profile \"%s\"", profile));
 					
-					if( new File("./"+Constants.PROFILES_DIR+availableProfiles.getSelection().toString()).exists()) {
+					if( new File("./"+Constants.PROFILES_DIR+profile).exists()) {
 						if(launchType.isSelected(singlePlayerButton))
 							Launcher.Launch(profile, Constants.DZ_SP_ARGS);
 						
@@ -160,10 +154,8 @@ public class BottomPanel extends Panel {
 			
 		});
 		
-		layer.add(nicknameLabel);
-		layer.add(passwordLabel);
-		
-		this.add(layer);
+		this.add(nicknameLabel);
+		this.add(passwordLabel);
 		
 		this.add(settings);
 		

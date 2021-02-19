@@ -1,9 +1,9 @@
 {
- "remember": false,
+ "remember": true,
  "password": "",
  "musicLocal": false,
  "versions": [],
- "nickname": "Player",
+ "nickname": "InvalidName",
  "profiles": {
   "1.8a": "1.8a",
   "1.8b": "1.8b",
@@ -17,6 +17,6 @@
   "1.7b": "1.7b",
   "latest": "2.1"
  },
- "registered": false,
+ "registered": true,
  "musicUse": false
 }
